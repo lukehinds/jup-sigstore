@@ -8,12 +8,12 @@
    git add .
    git commit -m "Initial commit"
    git branch -M main
-   git remote add origin https://github.com/yourusername/jup-sigstore.git
+   git remote add origin https://github.com/lukehinds/jup-sigstore.git
    git push -u origin main
    ```
 
 2. Make the package pip-installable by ensuring these files are present:
-   - setup.py
+   - setup.py (with jupyter dependencies as optional extras)
    - requirements.txt
    - README.md
    - jup_sigstore/* (package files)
@@ -24,29 +24,32 @@
 
 2. Create a new notebook and name it "JupSigstore_Test"
 
-3. Install the package directly from GitHub:
+3. Install dependencies:
    ```python
-   %pip install git+https://github.com/yourusername/jup-sigstore.git
+   # Install core dependencies
+   %pip install sigstore transformers google-auth google-auth-oauthlib nest-asyncio
+
+   # Install the package
+   %pip install git+https://github.com/lukehinds/jup-sigstore.git
    ```
 
-4. Install additional dependencies:
-   ```python
-   %pip install sigstore transformers google-auth google-auth-oauthlib
-   ```
-
-5. Import required libraries and authenticate:
+4. Import required libraries and authenticate:
    ```python
    from jup_sigstore import ModelSigner
    from transformers import AutoTokenizer
    from google.colab import auth
+   import nest_asyncio
    import asyncio
    import json
+
+   # Apply nest_asyncio to allow nested event loops
+   nest_asyncio.apply()
 
    # Authenticate with Google
    auth.authenticate_user()
    ```
 
-6. Test the signing functionality:
+5. Test the signing functionality:
    ```python
    # Initialize signer
    signer = ModelSigner()
@@ -84,13 +87,13 @@
 
 Common issues and solutions:
 
-1. Authentication Issues:
+1. Installation in Different Environments:
+   - For Colab: Use the basic installation without jupyter extras
+   - For local development: Install with jupyter extras using `pip install -e .[jupyter]`
+
+2. Authentication Issues:
    - Ensure you're logged into your Google account in Colab
    - Try running `auth.authenticate_user()` again if authentication fails
-
-2. Installation Issues:
-   - If the GitHub installation fails, try installing dependencies first
-   - Check if the repository is public and accessible
 
 3. Runtime Issues:
    - If you get "RuntimeError: No event loop running":
@@ -109,7 +112,7 @@ Common issues and solutions:
 
 2. Test locally:
    ```bash
-   pip install -e .
+   pip install -e .[jupyter]  # Install with jupyter extras for local development
    python -m pytest tests/  # if you have tests
    ```
 
@@ -121,10 +124,8 @@ Common issues and solutions:
    ```
 
 4. Test in Colab:
-   - Reinstall the package with the latest changes:
-     ```python
-     %pip install --upgrade git+https://github.com/yourusername/jup-sigstore.git
-     ```
+   - Follow the installation steps in Step 2
+   - Remember that Colab has its own jupyter environment
 
 ## Step 5: Production Deployment
 
@@ -139,9 +140,13 @@ Common issues and solutions:
      python -m twine upload dist/*
      ```
 
-2. Update installation instructions to use pip:
+2. Update installation instructions:
    ```python
+   # For Colab
    %pip install jup-sigstore
+
+   # For local development
+   pip install jup-sigstore[jupyter]
    ```
 
 ## Step 6: Monitoring and Maintenance
@@ -159,7 +164,7 @@ Common issues and solutions:
        steps:
          - uses: actions/checkout@v2
          - uses: actions/setup-python@v2
-         - run: pip install -e .
+         - run: pip install -e .[jupyter]
          - run: pip install pytest
          - run: pytest tests/
    ```
@@ -168,3 +173,16 @@ Common issues and solutions:
    - Keep dependencies updated
    - Test with new versions of dependencies
    - Monitor Sigstore API changes
+   - Check Colab compatibility regularly
+
+## Important Notes
+
+1. Environment Differences:
+   - Colab: Uses its own jupyter environment (ipykernel 5.5.6)
+   - Local: Can use newer versions via [jupyter] extras
+   - Production: Support both scenarios
+
+2. Installation Options:
+   - Basic: `pip install jup-sigstore`
+   - With Jupyter: `pip install jup-sigstore[jupyter]`
+   - Development: `pip install -e .[jupyter]`
