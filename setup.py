@@ -9,13 +9,17 @@ setup(
         "transformers>=4.30.0",
         "google-auth>=2.22.0",
         "google-auth-oauthlib>=1.0.0",
-        # Pin versions to match Google Colab requirements
-        "ipykernel==5.5.6",
-        "jupyter-client==6.1.12",
-        "jupyter-server<2.0.0",
         "requests>=2.31.0",
         "cryptography>=41.0.0",
     ],
+    # Explicitly declare these as optional to avoid conflicts with Colab
+    extras_require={
+        "jupyter": [
+            "ipykernel>=5.5.6",
+            "jupyter-client>=6.1.12",
+            "jupyter>=1.0.0",
+        ]
+    },
     author="Cline",
     author_email="cline@example.com",
     description="A tool for signing Hugging Face models using Sigstore in Jupyter notebooks",

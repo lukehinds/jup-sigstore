@@ -8,12 +8,12 @@
    git add .
    git commit -m "Initial commit"
    git branch -M main
-   git remote add origin https://github.com/yourusername/jup-sigstore.git
+   git remote add origin https://github.com/lukehinds/jup-sigstore.git
    git push -u origin main
    ```
 
 2. Make the package pip-installable by ensuring these files are present:
-   - setup.py (with pinned versions for Colab compatibility)
+   - setup.py (with jupyter dependencies as optional extras)
    - requirements.txt
    - README.md
    - jup_sigstore/* (package files)
@@ -24,21 +24,16 @@
 
 2. Create a new notebook and name it "JupSigstore_Test"
 
-3. Install dependencies while maintaining Colab compatibility:
+3. Install dependencies:
    ```python
-   # Install core dependencies without their dependencies
-   %pip install --no-deps sigstore transformers google-auth google-auth-oauthlib nest-asyncio
+   # Install core dependencies
+   %pip install sigstore transformers google-auth google-auth-oauthlib nest-asyncio
 
-   # Force specific versions for Colab compatibility
-   %pip install 'ipykernel==5.5.6' 'jupyter-client==6.1.12' 'jupyter-server<2.0.0'
-
-   # Install the package without dependencies
-   %pip install --no-deps git+https://github.com/yourusername/jup-sigstore.git
+   # Install the package
+   %pip install git+https://github.com/lukehinds/jup-sigstore.git
    ```
 
-4. Restart the runtime (Runtime > Restart runtime)
-
-5. Import required libraries and authenticate:
+4. Import required libraries and authenticate:
    ```python
    from jup_sigstore import ModelSigner
    from transformers import AutoTokenizer
@@ -54,7 +49,7 @@
    auth.authenticate_user()
    ```
 
-6. Test the signing functionality:
+5. Test the signing functionality:
    ```python
    # Initialize signer
    signer = ModelSigner()
@@ -92,10 +87,9 @@
 
 Common issues and solutions:
 
-1. Dependency Conflicts:
-   - Always use `--no-deps` when installing packages in Colab
-   - Install specific versions of jupyter-related packages as shown above
-   - Restart the runtime after installing packages
+1. Installation in Different Environments:
+   - For Colab: Use the basic installation without jupyter extras
+   - For local development: Install with jupyter extras using `pip install -e .[jupyter]`
 
 2. Authentication Issues:
    - Ensure you're logged into your Google account in Colab
@@ -118,7 +112,7 @@ Common issues and solutions:
 
 2. Test locally:
    ```bash
-   pip install -e .
+   pip install -e .[jupyter]  # Install with jupyter extras for local development
    python -m pytest tests/  # if you have tests
    ```
 
@@ -131,8 +125,7 @@ Common issues and solutions:
 
 4. Test in Colab:
    - Follow the installation steps in Step 2
-   - Remember to use `--no-deps` flag
-   - Always restart the runtime after installation
+   - Remember that Colab has its own jupyter environment
 
 ## Step 5: Production Deployment
 
@@ -147,9 +140,13 @@ Common issues and solutions:
      python -m twine upload dist/*
      ```
 
-2. Update installation instructions to use pip with specific flags:
+2. Update installation instructions:
    ```python
-   %pip install --no-deps jup-sigstore
+   # For Colab
+   %pip install jup-sigstore
+
+   # For local development
+   pip install jup-sigstore[jupyter]
    ```
 
 ## Step 6: Monitoring and Maintenance
@@ -167,7 +164,7 @@ Common issues and solutions:
        steps:
          - uses: actions/checkout@v2
          - uses: actions/setup-python@v2
-         - run: pip install -e .
+         - run: pip install -e .[jupyter]
          - run: pip install pytest
          - run: pytest tests/
    ```
@@ -180,14 +177,12 @@ Common issues and solutions:
 
 ## Important Notes
 
-1. Version Compatibility:
-   - The package is specifically configured to work with Google Colab
-   - Key version pins:
-     - ipykernel==5.5.6
-     - jupyter-client==6.1.12
-     - jupyter-server<2.0.0
+1. Environment Differences:
+   - Colab: Uses its own jupyter environment (ipykernel 5.5.6)
+   - Local: Can use newer versions via [jupyter] extras
+   - Production: Support both scenarios
 
-2. Installation in Different Environments:
-   - For Colab: Use the installation instructions in Step 2
-   - For local development: Can use regular pip install
-   - For production: Consider providing both Colab and non-Colab installation instructions
+2. Installation Options:
+   - Basic: `pip install jup-sigstore`
+   - With Jupyter: `pip install jup-sigstore[jupyter]`
+   - Development: `pip install -e .[jupyter]`
