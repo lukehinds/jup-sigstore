@@ -92,7 +92,8 @@ class ModelSigner:
             tokenizer.save_pretrained(save_path)
         
         # Sign the metadata and files
-        async with SigningContext.default() as ctx:
+        ctx = SigningContext()  # Create a new SigningContext instance
+        async with ctx:  # Use it as a context manager
             # Sign metadata
             metadata_signature = await ctx.sign(json.dumps(metadata).encode())
             
@@ -134,7 +135,7 @@ class ModelSigner:
             signatures = json.load(f)
             
         results = []
-        verifier = Verifier.default()
+        verifier = Verifier()  # Create a new Verifier instance
         
         # Verify metadata
         metadata_path = os.path.join(model_path, "metadata.json")
