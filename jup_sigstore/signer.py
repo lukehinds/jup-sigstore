@@ -1,12 +1,10 @@
 import os
 import json
 from datetime import datetime
-from typing import Dict, Any, Optional, Union
+from typing import Dict, Any, Optional
 
-from google.auth.transport.requests import Request
 from google.oauth2 import service_account
-from sigstore.sign import SigningContext
-from sigstore.verify import Verifier
+from sigstore import sign, verify, oidc
 from transformers import PreTrainedModel, PreTrainedTokenizer
 
 class ModelSigner:
@@ -91,9 +89,13 @@ class ModelSigner:
         if tokenizer:
             tokenizer.save_pretrained(save_path)
         
+        # Get identity token
+        identity = await oidc.detect_credential()
+        if not identity:
+            raise RuntimeError("No ambient credentials detected. Please ensure you're authenticated.")
+        
         # Sign the metadata and files
-        ctx = SigningContext()  # Create a new SigningContext instance
-        async with ctx:  # Use it as a context manager
+        async with sign.SigningContext(identity_token=identity) as ctx:
             # Sign metadata
             metadata_signature = await ctx.sign(json.dumps(metadata).encode())
             
@@ -135,7 +137,7 @@ class ModelSigner:
             signatures = json.load(f)
             
         results = []
-        verifier = Verifier()  # Create a new Verifier instance
+        verifier = verify.Verifier()
         
         # Verify metadata
         metadata_path = os.path.join(model_path, "metadata.json")
