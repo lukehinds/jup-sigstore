@@ -13,7 +13,7 @@
    ```
 
 2. Make the package pip-installable by ensuring these files are present:
-   - setup.py
+   - setup.py (with pinned versions for Colab compatibility)
    - requirements.txt
    - README.md
    - jup_sigstore/* (package files)
@@ -24,23 +24,31 @@
 
 2. Create a new notebook and name it "JupSigstore_Test"
 
-3. Install the package directly from GitHub:
+3. Install dependencies while maintaining Colab compatibility:
    ```python
-   %pip install git+https://github.com/yourusername/jup-sigstore.git
+   # Install core dependencies without their dependencies
+   %pip install --no-deps sigstore transformers google-auth google-auth-oauthlib nest-asyncio
+
+   # Force specific versions for Colab compatibility
+   %pip install 'ipykernel==5.5.6' 'jupyter-client==6.1.12' 'jupyter-server<2.0.0'
+
+   # Install the package without dependencies
+   %pip install --no-deps git+https://github.com/yourusername/jup-sigstore.git
    ```
 
-4. Install additional dependencies:
-   ```python
-   %pip install sigstore transformers google-auth google-auth-oauthlib
-   ```
+4. Restart the runtime (Runtime > Restart runtime)
 
 5. Import required libraries and authenticate:
    ```python
    from jup_sigstore import ModelSigner
    from transformers import AutoTokenizer
    from google.colab import auth
+   import nest_asyncio
    import asyncio
    import json
+
+   # Apply nest_asyncio to allow nested event loops
+   nest_asyncio.apply()
 
    # Authenticate with Google
    auth.authenticate_user()
@@ -84,13 +92,14 @@
 
 Common issues and solutions:
 
-1. Authentication Issues:
+1. Dependency Conflicts:
+   - Always use `--no-deps` when installing packages in Colab
+   - Install specific versions of jupyter-related packages as shown above
+   - Restart the runtime after installing packages
+
+2. Authentication Issues:
    - Ensure you're logged into your Google account in Colab
    - Try running `auth.authenticate_user()` again if authentication fails
-
-2. Installation Issues:
-   - If the GitHub installation fails, try installing dependencies first
-   - Check if the repository is public and accessible
 
 3. Runtime Issues:
    - If you get "RuntimeError: No event loop running":
@@ -121,10 +130,9 @@ Common issues and solutions:
    ```
 
 4. Test in Colab:
-   - Reinstall the package with the latest changes:
-     ```python
-     %pip install --upgrade git+https://github.com/yourusername/jup-sigstore.git
-     ```
+   - Follow the installation steps in Step 2
+   - Remember to use `--no-deps` flag
+   - Always restart the runtime after installation
 
 ## Step 5: Production Deployment
 
@@ -139,9 +147,9 @@ Common issues and solutions:
      python -m twine upload dist/*
      ```
 
-2. Update installation instructions to use pip:
+2. Update installation instructions to use pip with specific flags:
    ```python
-   %pip install jup-sigstore
+   %pip install --no-deps jup-sigstore
    ```
 
 ## Step 6: Monitoring and Maintenance
@@ -168,3 +176,18 @@ Common issues and solutions:
    - Keep dependencies updated
    - Test with new versions of dependencies
    - Monitor Sigstore API changes
+   - Check Colab compatibility regularly
+
+## Important Notes
+
+1. Version Compatibility:
+   - The package is specifically configured to work with Google Colab
+   - Key version pins:
+     - ipykernel==5.5.6
+     - jupyter-client==6.1.12
+     - jupyter-server<2.0.0
+
+2. Installation in Different Environments:
+   - For Colab: Use the installation instructions in Step 2
+   - For local development: Can use regular pip install
+   - For production: Consider providing both Colab and non-Colab installation instructions
